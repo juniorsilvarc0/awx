@@ -4,7 +4,7 @@
   gather_facts: true
   tasks:
 
-    - name: Testar sudo com whoami
+    - name: Mostrar usuário atual (debug whoami)
       command: whoami
       register: whoami_result
 
@@ -17,24 +17,15 @@
 
     - debug:
         var: apt_lock.stdout_lines
-    
-    - name: Testar apt update com become
-      become: true
-      command: apt update
-      register: apt_update_test
-      ignore_errors: true
-
-    - debug:
-        var: apt_update_test
-
 
     - name: Atualizar pacotes (Debian-based)
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
+        upgrade: dist
       when: ansible_os_family == "Debian"
 
     - name: Atualizar pacotes (RedHat-based)
-      yum:
+      ansible.builtin.yum:
         name: '*'
         state: latest
       when: ansible_os_family == "RedHat"
