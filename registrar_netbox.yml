@@ -1,0 +1,23 @@
+- name: Registrar VM no NetBox
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    netbox_url: "http://177.93.133.239:8000/"
+    netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+  tasks:
+
+    - name: Obter hostname da VM
+      ansible.builtin.command: hostname
+      register: vm_hostname
+
+    - name: Registrar dispositivo no NetBox
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ vm_hostname.stdout }}"
+          device_type: "generic device"
+          device_role: "server"
+          status: "active"
+        state: present
