@@ -1,40 +1,23 @@
-- name: Coletar informações do sistema das VMs
+- name: Registrar VM no NetBox
   hosts: all
   become: true
   gather_facts: true
-
+  vars:
+    netbox_url: "http://177.93.133.239:8000/"
+    netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
   tasks:
 
-    - name: Mostrar informações de CPU
-      ansible.builtin.shell: lscpu
-      register: cpu_info
+    - name: Obter hostname da VM
+      ansible.builtin.command: hostname
+      register: vm_hostname
 
-    - name: Mostrar informações de memória
-      ansible.builtin.shell: free -h
-      register: memory_info
-
-    - name: Mostrar uso de disco
-      ansible.builtin.shell: df -h /
-      register: disk_info
-
-    - name: Mostrar interfaces de rede
-      ansible.builtin.shell: ip link show
-      register: iface_info
-
-    - name: Mostrar IP das interfaces
-      ansible.builtin.shell: ip -4 addr show
-      register: ip_info
-
-    - name: Verificar status do sistema
-      ansible.builtin.shell: uptime
-      register: status_info
-
-    - name: Exibir informações coletadas
-      ansible.builtin.debug:
-        msg:
-          CPU: "{{ cpu_info.stdout }}"
-          Memória: "{{ memory_info.stdout }}"
-          Disco: "{{ disk_info.stdout }}"
-          Interfaces: "{{ iface_info.stdout }}"
-          IPs: "{{ ip_info.stdout }}"
-          Status: "{{ status_info.stdout }}"
+    - name: Registrar dispositivo no NetBox
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ vm_hostname.stdout }}"
+          device_type: "generic device"
+          device_role: "server"
+          status: "active"
+        state: present
