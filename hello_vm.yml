@@ -1,31 +1,40 @@
-- name: Hello VM Magalu
+- name: Coletar informações do sistema das VMs
   hosts: all
   become: true
   gather_facts: true
+
   tasks:
 
-    - name: Mostrar usuário atual (debug whoami)
-      command: whoami
-      register: whoami_result
+    - name: Mostrar informações de CPU
+      ansible.builtin.shell: lscpu
+      register: cpu_info
 
-    - debug:
-        var: whoami_result.stdout
+    - name: Mostrar informações de memória
+      ansible.builtin.shell: free -h
+      register: memory_info
 
-    - name: Verificar se há lock no apt
-      shell: lsof /var/lib/apt/lists/lock || echo "sem lock"
-      register: apt_lock
+    - name: Mostrar uso de disco
+      ansible.builtin.shell: df -h /
+      register: disk_info
 
-    - debug:
-        var: apt_lock.stdout_lines
+    - name: Mostrar interfaces de rede
+      ansible.builtin.shell: ip link show
+      register: iface_info
 
-    - name: Atualizar pacotes (Debian-based)
-      ansible.builtin.apt:
-        update_cache: yes
-        upgrade: dist
-      when: ansible_os_family == "Debian"
+    - name: Mostrar IP das interfaces
+      ansible.builtin.shell: ip -4 addr show
+      register: ip_info
 
-    - name: Atualizar pacotes (RedHat-based)
-      ansible.builtin.yum:
-        name: '*'
-        state: latest
-      when: ansible_os_family == "RedHat"
+    - name: Verificar status do sistema
+      ansible.builtin.shell: uptime
+      register: status_info
+
+    - name: Exibir informações coletadas
+      ansible.builtin.debug:
+        msg:
+          CPU: "{{ cpu_info.stdout }}"
+          Memória: "{{ memory_info.stdout }}"
+          Disco: "{{ disk_info.stdout }}"
+          Interfaces: "{{ iface_info.stdout }}"
+          IPs: "{{ ip_info.stdout }}"
+          Status: "{{ status_info.stdout }}"
