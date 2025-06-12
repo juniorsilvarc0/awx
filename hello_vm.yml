@@ -3,6 +3,21 @@
   become: true
   gather_facts: true
   tasks:
+
+    - name: Testar sudo com whoami
+      command: whoami
+      register: whoami_result
+
+    - debug:
+        var: whoami_result.stdout
+
+    - name: Verificar se há lock no apt
+      shell: lsof /var/lib/apt/lists/lock || echo "sem lock"
+      register: apt_lock
+
+    - debug:
+        var: apt_lock.stdout_lines
+
     - name: Atualizar pacotes (Debian-based)
       apt:
         update_cache: yes
