@@ -17,6 +17,16 @@
 
     - debug:
         var: apt_lock.stdout_lines
+    
+    - name: Testar apt update com become
+      become: true
+      command: apt update
+      register: apt_update_test
+      ignore_errors: true
+
+    - debug:
+        var: apt_update_test
+
 
     - name: Atualizar pacotes (Debian-based)
       apt:
